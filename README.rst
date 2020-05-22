@@ -9,6 +9,6 @@ Usage
 
 Installation
 ------------
-``pip install https://github.com/Anlyz/sporact_base.git``
+``pip install git+https://github.com/Anlyz/sporact_base.git``
 
 `sporact_base_pkg` was written by `shivesh <shivesh@anlyz.io>`_.
