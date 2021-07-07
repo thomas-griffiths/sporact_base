@@ -5,7 +5,7 @@ A base class for all ``sporact_integrations``
 
 Usage
 -----
-- All sporact_integrations must inherit this class.
+- To create a new integration follow the instructions provided in the example_integration README.md file.
 
 Installation
 ------------

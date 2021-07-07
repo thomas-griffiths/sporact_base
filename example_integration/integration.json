@@ -1,0 +1,34 @@
+{
+  "name": "example_integration",
+  "display_name": "Example Integration",
+  "config":
+    {
+      "properties":{
+        "api_key": {"type": "string"}
+      }
+    },
+  "actions": [
+    {
+      "name": "example_integration.example_action",
+      "display_name": "Example action for demonstrating how to create actions which returns the string that is provided as input and api key from the config",
+      "type": "MISTRAL",
+      "module": "example_integration.src.example_action.ExampleAction",
+      "inputs": [
+        {
+          "name": "example_input",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "example_output",
+          "type": "string"
+        },
+        {
+          "name": "api_key",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}
