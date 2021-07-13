@@ -21,6 +21,7 @@ def main():
     if os.path.isdir(name):
         print("Action already exists with this name")
         sys.exit()
+    import pdb; pdb.set_trace()
     shutil.copytree("../../example_integration", "../../"+name)
     new_action_file_name = name + '_action.py'
     new_action_name = name.title() + 'Action'
