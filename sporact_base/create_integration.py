@@ -21,12 +21,11 @@ def main():
     if os.path.isdir(name):
         print("Action already exists with this name")
         sys.exit()
-    import pdb; pdb.set_trace()
-    shutil.copytree("../../example_integration", "../../"+name)
+    shutil.copytree(os.getcwd()+"/../example_integration", os.getcwd()+"/../"+name)
     new_action_file_name = name + '_action.py'
     new_action_name = name.title() + 'Action'
     new_test_action_file_name = 'test_'+name + '_action.py'
-    for dirpath, dirs, files in os.walk("../../"+name):
+    for dirpath, dirs, files in os.walk(os.getcwd()+"/../"+name):
         for file in files:
             if file == 'example_action.py':
                 new_file = os.path.join(dirpath, new_action_file_name)
@@ -64,4 +63,4 @@ def main():
 
 
 # if __name__ == "__main__":
-#     create_integration(sys.argv[1:])
+#     main()
