@@ -85,7 +85,7 @@ class SporactBaseAction:
                 # rj.delete(key)
             final_json = {}
             for each_key in key_list:
-                response = get_result(each_key)
+                response = self.get_result(each_key)
                 final_json[each_key] = response
             return final_json
         except Exception as e:
