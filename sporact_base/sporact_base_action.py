@@ -36,24 +36,26 @@ class SporactBaseAction:
         self.SPORACT_API_URL = "http://api:8000/api/"
         self.SPORACT_MEDIA_URL = "http://api:8000/media/"
 
-    def add_task(self, task: dict):
+    def add_task(self, task: dict, tag=""):
         try:
-            task_id = "firewall-task-" + str(uuid.uuid4())
-            obj = {task_id: json.dumps({"task": task})}
+            if tag != "":
+                tag = str(tag).lower() + "-"
+            task_id = "task-" + tag + str(uuid.uuid4())
+            obj = {task_id: json.dumps({"task": task, "status": "pending"})}
             rj.mset(obj)
             return {"status": "success", "task_id": task_id}
         except Exception as e:
             traceback.print_exc()
             return {"status": "failed"}
 
-    def add_result(self, task: dict):
+    def add_result(self, result: dict):
         try:
-            task_id = task["task_id"]
-            del task["task_id"]
+            task_id = result["task_id"]
+            del result["task_id"]
             response = rj.mget(task_id)
             if None not in response:
                 response = json.loads(response[0])
-                response.update({"result": task})
+                response.update({"result": result, "status": "completed"})
                 obj = {task_id: json.dumps(response)}
                 rj.mset(obj)
             else:
@@ -63,11 +65,17 @@ class SporactBaseAction:
             traceback.print_exc()
             return {"status": "failed"}
 
-    def get_result(self, task_id: str):
+    def get_task_info(self, task_id: str):
         try:
             response = rj.mget(task_id)
             if None not in response:
                 response = json.loads(response[0])
+                if "result" in response and response["status"] == "completed":
+                    self.remove_task(task_id)
+                else:
+                    response.update({"status": "in-progress"})
+                    obj = {task_id: json.dumps(response)}
+                    rj.mset(obj)
             else:
                 response = {}
             return response
@@ -75,19 +83,44 @@ class SporactBaseAction:
             traceback.print_exc()
             return {"status": "failed"}
 
-    def get_task(self):
+    def get_task(self, tag=""):
         try:
+            if tag != "":
+                tag = str(tag).lower() + "-"
             result = rj.scan_iter()
             key_list = []
             for key in result:
-                if str(key.decode("utf-8")).startswith("firewall-task-"):
+                if str(key.decode("utf-8")).startswith("task-" + tag):
                     key_list.append(key.decode("utf-8"))
-                # rj.delete(key)
             final_json = {}
             for each_key in key_list:
-                response = self.get_result(each_key)
+                response = self.get_task_info(each_key)
                 final_json[each_key] = response
             return final_json
         except Exception as e:
             traceback.print_exc()
             return {"status": "failed"}
+
+    def remove_task(self, task_id: str):
+        try:
+            rj.delete(task_id)
+            return {"status": "success"}
+        except Exception as e:
+            traceback.print_exc()
+            return {"status": "failed"}
+
+    def get_integration(self, cur_dir: str):
+        file_name = "integration.json"
+        while True:
+            file_list = os.listdir(cur_dir)
+            parent_dir = os.path.dirname(cur_dir)
+            if file_name in file_list:
+                with open(os.path.join(cur_dir, file_name), "r") as file:
+                    integration_data = json.loads(file.read())
+                    integration_name = integration_data["name"]
+                    return integration_name
+            else:
+                if cur_dir == parent_dir:
+                    return ""
+                else:
+                    cur_dir = parent_dir
