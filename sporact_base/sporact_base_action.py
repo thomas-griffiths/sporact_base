@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 import traceback
 import uuid
 import json
@@ -109,18 +110,41 @@ class SporactBaseAction:
             traceback.print_exc()
             return {"status": "failed"}
 
-    def get_integration(self, cur_dir: str):
-        file_name = "integration.json"
-        while True:
-            file_list = os.listdir(cur_dir)
-            parent_dir = os.path.dirname(cur_dir)
-            if file_name in file_list:
-                with open(os.path.join(cur_dir, file_name), "r") as file:
-                    integration_data = json.loads(file.read())
-                    integration_name = integration_data["name"]
-                    return integration_name
-            else:
-                if cur_dir == parent_dir:
-                    return ""
+    def get_result(self, task: dict, timeout=300):
+        try:
+            response = {}
+            while True:
+                if timeout == 0:
+                    break
+                if "task_id" in task:
+                    response = self.get_task_info(task["task_id"])
+                    if "result" in response:
+                        break
                 else:
-                    cur_dir = parent_dir
+                    break
+                timeout = timeout - 1
+                time.sleep(1)
+            return response
+        except Exception as e:
+            traceback.print_exc()
+            return {"status": "failed"}
+
+    def get_integration(self, cur_dir: str):
+        try:
+            file_name = "integration.json"
+            while True:
+                file_list = os.listdir(cur_dir)
+                parent_dir = os.path.dirname(cur_dir)
+                if file_name in file_list:
+                    with open(os.path.join(cur_dir, file_name), "r") as file:
+                        integration_data = json.loads(file.read())
+                        integration_name = integration_data["name"]
+                        return integration_name
+                else:
+                    if cur_dir == parent_dir:
+                        return ""
+                    else:
+                        cur_dir = parent_dir
+        except Exception as e:
+            traceback.print_exc()
+            return ""
