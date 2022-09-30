@@ -42,7 +42,7 @@ class SporactBaseAction:
             if tag != "":
                 tag = str(tag).lower() + "-"
             task_id = "task-" + tag + str(uuid.uuid4())
-            obj = {task_id: json.dumps({"task": task, "status": "pending"})}
+            obj = {task_id: json.dumps({"inputs": task, "status": "pending"})}
             rj.mset(obj)
             return {"status": "success", "task_id": task_id}
         except Exception as e:
@@ -56,7 +56,7 @@ class SporactBaseAction:
             response = rj.mget(task_id)
             if None not in response:
                 response = json.loads(response[0])
-                response.update({"result": result, "status": "completed"})
+                response.update({"outputs": result["outputs"], "status": "completed"})
                 obj = {task_id: json.dumps(response)}
                 rj.mset(obj)
             else:
@@ -71,7 +71,7 @@ class SporactBaseAction:
             response = rj.mget(task_id)
             if None not in response:
                 response = json.loads(response[0])
-                if "result" in response and response["status"] == "completed":
+                if "outputs" in response and response["status"] == "completed":
                     self.remove_task(task_id)
                 else:
                     response.update({"status": "in-progress"})
@@ -93,11 +93,17 @@ class SporactBaseAction:
             for key in result:
                 if str(key.decode("utf-8")).startswith("task-" + tag):
                     key_list.append(key.decode("utf-8"))
-            final_json = {}
+            final_list = []
             for each_key in key_list:
                 response = self.get_task_info(each_key)
-                final_json[each_key] = response
-            return final_json
+                if response != {}:
+                    outputs = {}
+                    if "outputs" in response:
+                        outputs = response["outputs"]
+                    final_json = {"task_id": each_key, "status": response["status"],
+                                  "inputs": response["inputs"], "outputs": outputs}
+                    final_list.append(final_json)
+            return final_list
         except Exception as e:
             traceback.print_exc()
             return {"status": "failed"}
@@ -118,13 +124,18 @@ class SporactBaseAction:
                     break
                 if "task_id" in task:
                     response = self.get_task_info(task["task_id"])
-                    if "result" in response:
-                        break
+                    if "outputs" in response:
+                        if response["outputs"] != {}:
+                            break
                 else:
                     break
                 timeout = timeout - 1
                 time.sleep(1)
-            return response
+            final_json = {}
+            if response != {}:
+                final_json = {"task_id": task["task_id"], "status": response["status"],
+                              "outputs": response["outputs"]}
+            return final_json
         except Exception as e:
             traceback.print_exc()
             return {"status": "failed"}
