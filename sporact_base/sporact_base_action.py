@@ -40,7 +40,7 @@ class SporactBaseAction:
     def add_task(self, task: dict, tag=""):
         try:
             if tag != "":
-                tag = str(tag).lower() + "-"
+                tag = str(tag) + "-"
             task_id = "task-" + tag + str(uuid.uuid4())
             obj = {task_id: json.dumps({"inputs": task, "status": "pending"})}
             rj.mset(obj)
@@ -87,7 +87,7 @@ class SporactBaseAction:
     def get_task(self, tag=""):
         try:
             if tag != "":
-                tag = str(tag).lower() + "-"
+                tag = str(tag) + "-"
             result = rj.scan_iter()
             key_list = []
             for key in result:
@@ -140,7 +140,7 @@ class SporactBaseAction:
             traceback.print_exc()
             return {"status": "failed"}
 
-    def get_integration(self, cur_dir: str):
+    def get_integration(self, cur_dir: str, name=""):
         try:
             file_name = "integration.json"
             while True:
@@ -150,7 +150,10 @@ class SporactBaseAction:
                     with open(os.path.join(cur_dir, file_name), "r") as file:
                         integration_data = json.loads(file.read())
                         integration_name = integration_data["name"]
-                        return integration_name
+                        if name == "":
+                            return integration_name
+                        else:
+                            return integration_name+"-"+name
                 else:
                     if cur_dir == parent_dir:
                         return ""
