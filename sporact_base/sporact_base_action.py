@@ -61,7 +61,7 @@ class SporactBaseAction:
                 rj.mset(obj)
             else:
                 pass
-            return {"status": "success", "task_id": task_id}
+            return {"status": "success", "task_id": task_id, "response": response}
         except Exception as e:
             traceback.print_exc()
             return {"status": "failed"}
