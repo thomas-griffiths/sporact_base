@@ -3,3 +3,4 @@
 # Changing the order has an impact on the overall integration.
 redis==4.3.4
 
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
